@@ -1,55 +1,152 @@
+"use client";
+
+import React from "react";
 import { CartItem as CartItemType } from "@/types";
-import Image from "next/image";
-import { Leaf } from "lucide-react";
+import { getProductById } from "@/lib/products";
+import { useCheckout } from "@/context/CheckoutContext";
+import { useToast } from "@/context/ToastContext";
+import { Minus, Plus, X, Leaf } from "lucide-react";
 
 interface CartItemProps {
   item: CartItemType;
   readonly?: boolean;
-  index?: number;
 }
 
-const ecoLabels = ["🌿 Biodegradable", "♻️ Recycled Material", "🌱 Sustainably Sourced"];
+export default function CartItem({ item, readonly = false }: CartItemProps) {
+  const product = getProductById(item.productId);
+  const { updateQuantity, removeFromCart, addToCart } = useCheckout();
+  const { info } = useToast();
 
-export default function CartItem({ item, readonly = false, index = 0 }: CartItemProps) {
+  if (!product) return null;
+
+  const handleRemove = () => {
+    const quantity = item.quantity;
+    removeFromCart(item.productId);
+    info(`${product.name} removed from cart`, {
+      label: "Undo",
+      onClick: () => {
+        addToCart(item.productId, quantity);
+      },
+    });
+  };
+
+  const handleQuantityChange = (delta: number) => {
+    const newQuantity = item.quantity + delta;
+    if (newQuantity <= 0) {
+      handleRemove();
+    } else {
+      updateQuantity(item.productId, newQuantity);
+    }
+  };
+
+  const itemTotal = product.price * item.quantity;
+
   return (
-    <div className="group flex items-center gap-5 p-5 hover:bg-white transition-all duration-300 cursor-default">
-      {/* Image */}
-      <div className="relative w-24 h-24 bg-gray-100 rounded-2xl overflow-hidden flex-shrink-0 shadow-sm group-hover:shadow-md transition-all duration-300">
-        <Image
-          src={item.image}
-          alt={item.product_name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-        />
+    <div className="group flex items-center gap-4 p-4 sm:p-5 hover:bg-white/50 transition-all duration-300">
+      {/* Product Emoji */}
+      <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-[#F0FAF5] to-[#D1F5E5] rounded-xl flex items-center justify-center text-4xl sm:text-5xl flex-shrink-0">
+        {product.emoji}
+        <div className="absolute -top-1 -left-1 bg-[#0A9B6B] rounded-full p-1">
+          <Leaf className="w-3 h-3 text-white" />
+        </div>
+      </div>
+
+      {/* Product Info */}
+      <div className="flex-1 min-w-0">
+        <h3 className="font-display font-semibold text-[#111827] text-sm sm:text-base leading-tight mb-1 line-clamp-2">
+          {product.name}
+        </h3>
+        
+        {/* Eco Tag */}
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-[#D1F5E5] text-[#076B4A] mb-2">
+          🌿 {product.tag}
+        </span>
+
+        {/* Price per unit */}
+        <p className="text-xs text-[#9CA3AF]">
+          ₹{product.price} each
+        </p>
+
+        {/* Quantity Controls - Mobile */}
         {!readonly && (
-          <div className="absolute top-1.5 left-1.5 bg-emerald-500 rounded-full p-0.5">
-            <Leaf className="w-2.5 h-2.5 text-white" />
+          <div className="flex items-center gap-2 mt-3 sm:hidden">
+            <button
+              onClick={() => handleQuantityChange(-1)}
+              className="w-8 h-8 rounded-lg bg-[#F0FAF5] hover:bg-[#D1F5E5] flex items-center justify-center transition-colors"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-4 h-4 text-[#4B5563]" />
+            </button>
+            <span className="w-8 text-center font-semibold text-[#111827]">
+              {item.quantity}
+            </span>
+            <button
+              onClick={() => handleQuantityChange(1)}
+              className="w-8 h-8 rounded-lg bg-[#F0FAF5] hover:bg-[#D1F5E5] flex items-center justify-center transition-colors"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-4 h-4 text-[#4B5563]" />
+            </button>
           </div>
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <h3 className="text-[15px] font-semibold text-gray-900 leading-snug">{item.product_name}</h3>
+      {/* Desktop: Quantity & Price */}
+      <div className="hidden sm:flex items-center gap-6">
+        {/* Quantity Controls */}
         {!readonly && (
-          <span className="mt-1.5 inline-block text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-full px-2 py-0.5">
-            {ecoLabels[index % ecoLabels.length]}
-          </span>
+          <div className="flex items-center gap-1 bg-[#F0FAF5] rounded-xl p-1">
+            <button
+              onClick={() => handleQuantityChange(-1)}
+              className="w-9 h-9 rounded-lg hover:bg-[#D1F5E5] flex items-center justify-center transition-colors"
+              aria-label="Decrease quantity"
+            >
+              <Minus className="w-4 h-4 text-[#4B5563]" />
+            </button>
+            <span className="w-10 text-center font-bold text-[#111827]">
+              {item.quantity}
+            </span>
+            <button
+              onClick={() => handleQuantityChange(1)}
+              className="w-9 h-9 rounded-lg hover:bg-[#D1F5E5] flex items-center justify-center transition-colors"
+              aria-label="Increase quantity"
+            >
+              <Plus className="w-4 h-4 text-[#4B5563]" />
+            </button>
+          </div>
         )}
-        <div className="mt-2 flex items-center gap-2">
-          <span className="text-xs font-semibold text-gray-500 bg-gray-100 rounded-full px-2.5 py-0.5">
+
+        {readonly && (
+          <span className="text-sm text-[#4B5563] bg-[#F0FAF5] px-3 py-1.5 rounded-lg">
             Qty: {item.quantity}
           </span>
-          {!readonly && (
-            <span className="text-xs text-gray-400">₹{item.product_price} each</span>
-          )}
+        )}
+
+        {/* Price */}
+        <div className="text-right min-w-[80px]">
+          <p className="font-display text-xl font-bold text-[#111827]">
+            ₹{itemTotal}
+          </p>
         </div>
       </div>
 
-      {/* Price */}
-      <div className="text-right flex-shrink-0">
-        <p className="text-xl font-extrabold text-gray-900 tracking-tight">₹{item.product_price * item.quantity}</p>
+      {/* Mobile Price */}
+      <div className="sm:hidden text-right">
+        <p className="font-display text-lg font-bold text-[#111827]">
+          ₹{itemTotal}
+        </p>
       </div>
+
+      {/* Remove Button */}
+      {!readonly && (
+        <button
+          onClick={handleRemove}
+          className="p-2 rounded-lg text-[#9CA3AF] hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+          aria-label="Remove item"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 }
