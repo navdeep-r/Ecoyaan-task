@@ -61,26 +61,26 @@ function ProductCard({ product }: { product: Product }) {
   return (
     <div className="bg-white rounded-2xl border border-[#E5E7EB] overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col group h-full">
       {/* Image / Emoji */}
-      <div className="p-6 pb-0 relative">
-        <div className="w-full aspect-square bg-gradient-to-br from-[#F0FAF5] to-[#D1F5E5] rounded-xl flex items-center justify-center text-7xl group-hover:scale-[1.02] transition-transform duration-300">
+      <div className="p-4 pb-0 relative">
+        <div className="w-full aspect-square bg-gradient-to-br from-[#F0FAF5] to-[#D1F5E5] rounded-xl flex items-center justify-center text-5xl group-hover:scale-[1.02] transition-transform duration-300">
           {product.emoji}
         </div>
         {product.badge && (
-          <div className={`absolute top-8 left-8 px-3 py-1 text-xs font-bold rounded-full shadow-sm ${product.badgeColor ? BADGE_COLORS[product.badgeColor].bg + " " + BADGE_COLORS[product.badgeColor].text + " border " + BADGE_COLORS[product.badgeColor].border : "bg-white text-gray-800 border border-gray-200"}`}>
+          <div className={`absolute top-6 left-6 px-3 py-1 text-[10px] font-bold rounded-full shadow-sm ${product.badgeColor ? BADGE_COLORS[product.badgeColor].bg + " " + BADGE_COLORS[product.badgeColor].text + " border " + BADGE_COLORS[product.badgeColor].border : "bg-white text-gray-800 border border-gray-200"}`}>
             {product.badge}
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-5 flex-grow flex flex-col">
+      <div className="p-4 flex-grow flex flex-col">
         <div className="flex items-center gap-1.5 mb-2">
-          <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
           <span className="text-sm font-semibold text-[#111827]">{product.rating}</span>
           <span className="text-xs text-[#9CA3AF]">({product.reviews})</span>
         </div>
 
-        <h3 className="font-display font-bold text-[#111827] text-lg leading-snug mb-1">
+        <h3 className="font-display font-bold text-[#111827] text-base leading-snug mb-1">
           {product.name}
         </h3>
         
@@ -88,9 +88,9 @@ function ProductCard({ product }: { product: Product }) {
           {product.description}
         </p>
 
-        <div className="mt-auto pt-4 flex items-center justify-between">
+        <div className="mt-auto pt-3 flex items-center justify-between">
           <div className="flex flex-col">
-            <span className="text-xl font-display font-black text-[#0A9B6B]">
+            <span className="text-lg font-display font-black text-[#0A9B6B]">
               ₹{product.price}
             </span>
             <span className="text-xs text-[#9CA3AF] line-through font-medium">
@@ -103,7 +103,7 @@ function ProductCard({ product }: { product: Product }) {
               onClick={handleAddToCart}
               disabled={addedToCart}
               className={`
-                text-sm font-bold px-5 py-2.5 rounded-xl transition-all duration-300 ease flex items-center gap-1.5
+                text-xs sm:text-sm font-bold px-3 py-2 sm:px-4 rounded-xl transition-all duration-300 ease flex items-center gap-1.5
                 ${addedToCart 
                   ? "bg-[#6EBF9A] text-white cursor-not-allowed" 
                   : "bg-[#111827] hover:bg-[#374151] text-white active:scale-95"
@@ -286,7 +286,7 @@ export default function ShopPage() {
         </p>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-5">
           {displayedProducts.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

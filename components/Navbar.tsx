@@ -8,12 +8,13 @@ import { Leaf, ShoppingCart, Menu, X, ChevronRight } from "lucide-react";
 export default function Navbar() {
   const { getCartItemCount } = useCheckout();
   const [cartCount, setCartCount] = useState(0);
+  const [orderCount, setOrderCount] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Read cart count from localStorage on every render and listen to events
+  // Read counts from localStorage on every render and listen to events
   useEffect(() => {
-    const updateCartCount = () => {
+    const updateCounts = () => {
       try {
         const cartStr = localStorage.getItem("ecoyaan_cart");
         if (cartStr) {
@@ -26,26 +27,40 @@ export default function Navbar() {
       } catch (e) {
         setCartCount(0);
       }
-    };
 
-    updateCartCount();
-
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "ecoyaan_cart") {
-        updateCartCount();
+      try {
+        const orderStr = localStorage.getItem("ecoyaan_order_history");
+        if (orderStr) {
+          const orders = JSON.parse(orderStr);
+          setOrderCount(orders.length);
+        } else {
+          setOrderCount(0);
+        }
+      } catch (e) {
+        setOrderCount(0);
       }
     };
 
-    const handleLocalCartChange = () => {
-      updateCartCount();
+    updateCounts();
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "ecoyaan_cart" || e.key === "ecoyaan_order_history") {
+        updateCounts();
+      }
+    };
+
+    const handleLocalChange = () => {
+      updateCounts();
     };
 
     window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("cart_updated", handleLocalCartChange);
+    window.addEventListener("cart_updated", handleLocalChange);
+    window.addEventListener("order_history_updated", handleLocalChange);
 
     return () => {
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("cart_updated", handleLocalCartChange);
+      window.removeEventListener("cart_updated", handleLocalChange);
+      window.removeEventListener("order_history_updated", handleLocalChange);
     };
   }, []);
   useEffect(() => {
@@ -70,6 +85,7 @@ export default function Navbar() {
 
   const navLinks = [
     { href: "/shop", label: "Shop" },
+    { href: "/orders", label: "Orders", badge: orderCount },
     { href: "#impact", label: "Impact" },
     { href: "#about", label: "About" },
   ];
@@ -102,9 +118,14 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="relative text-sm font-semibold text-[#4B5563] hover:text-[#0A9B6B] transition-colors group"
+                className="relative text-sm font-semibold text-[#4B5563] hover:text-[#0A9B6B] transition-colors group flex items-center gap-1.5"
               >
                 {link.label}
+                {!!link.badge && link.badge > 0 && (
+                  <span className="bg-[#E8F8F0] text-[#0A9B6B] text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                    {link.badge}
+                  </span>
+                )}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-[#0A9B6B] transition-all group-hover:w-full" />
               </a>
             ))}
@@ -181,7 +202,14 @@ export default function Navbar() {
               onClick={() => setIsMobileMenuOpen(false)}
               className="flex items-center justify-between p-3 rounded-xl hover:bg-[#F0FAF5] transition-colors text-[#111827] font-semibold"
             >
-              {link.label}
+              <div className="flex items-center gap-2">
+                {link.label}
+                {!!link.badge && link.badge > 0 && (
+                  <span className="bg-[#E8F8F0] text-[#0A9B6B] text-[10px] font-bold px-1.5 py-0.5 rounded-md">
+                    {link.badge}
+                  </span>
+                )}
+              </div>
               <ChevronRight className="w-4 h-4 text-[#9CA3AF]" />
             </a>
           ))}

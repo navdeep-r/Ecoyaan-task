@@ -80,6 +80,54 @@ export default function SuccessPage() {
     }
   }, [order, cart, lastOrder, router]);
 
+  // Save order to permanent history
+  useEffect(() => {
+    if (order && activeAddress) {
+      try {
+        const historyStr = localStorage.getItem("ecoyaan_order_history");
+        const history = historyStr ? JSON.parse(historyStr) : [];
+        
+        // Prevent duplicates in case of refresh
+        if (!history.some((o: any) => o.orderId === order.id)) {
+          const items = order.items.map(item => {
+            const product = getProductById(item.productId);
+            return {
+              productId: item.productId,
+              name: product?.name || "Unknown Product",
+              emoji: product?.emoji || "📦",
+              qty: item.quantity,
+              price: product?.price || 0
+            };
+          });
+
+          const newOrder = {
+            orderId: order.id,
+            timestamp: order.createdAt || new Date().toISOString(),
+            items,
+            address: {
+              fullName: activeAddress.fullName,
+              city: activeAddress.city,
+              state: activeAddress.state,
+              pinCode: activeAddress.pinCode
+            },
+            subtotal: order.subtotal,
+            shipping: order.shipping,
+            discount: order.discount,
+            total: order.total,
+            ecoImpact: getEcoImpact(order.total),
+            paymentMethod: "Credit / Debit Card"
+          };
+
+          history.unshift(newOrder);
+          localStorage.setItem("ecoyaan_order_history", JSON.stringify(history));
+          window.dispatchEvent(new Event("order_history_updated"));
+        }
+      } catch(e) {
+        console.error("Failed to save order history", e);
+      }
+    }
+  }, [order, activeAddress, getEcoImpact]);
+
   const handleBackToHome = () => {
     clearCheckout();
     router.push("/");
@@ -306,6 +354,16 @@ export default function SuccessPage() {
                 Track Order
                 <ExternalLink className="w-4 h-4" />
               </button>
+            </div>
+
+            <div className="text-center mt-6">
+              <Link 
+                href="/orders" 
+                className="inline-block text-[#0A9B6B] hover:text-[#076B4A] font-bold text-sm tracking-wide transition-colors"
+                onClick={() => clearCheckout()}
+              >
+                View all your orders →
+              </Link>
             </div>
           </div>
         </div>
